@@ -16,8 +16,28 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.http import JsonResponse
+
+def api_root(request):
+    """API root endpoint with available endpoints information"""
+    return JsonResponse({
+        'message': 'Django REST API - Employee Management System',
+        'version': '1.0.0',
+        'endpoints': {
+            'admin': '/admin/',
+            'employees': {
+                'list': '/api/employees/',
+                'create': 'POST /api/employees/',
+                'detail': '/api/employees/{id}/',
+                'update': 'PUT /api/employees/{id}/',
+                'delete': 'DELETE /api/employees/{id}/'
+            }
+        },
+        'documentation': 'This API provides CRUD operations for employee management'
+    })
 
 urlpatterns = [
+    path('', api_root, name='api-root'),
     path('admin/', admin.site.urls),
     path('api/employees/', include('employees.urls')),
 ]
