@@ -16,28 +16,64 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.http import JsonResponse
+from django.shortcuts import redirect
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenRefreshView
 
-def api_root(request):
-    """API root endpoint with available endpoints information"""
-    return JsonResponse({
-        'message': 'Django REST API - Employee Management System',
-        'version': '1.0.0',
-        'endpoints': {
-            'admin': '/admin/',
-            'employees': {
-                'list': '/api/employees/',
-                'create': 'POST /api/employees/',
-                'detail': '/api/employees/{id}/',
-                'update': 'PUT /api/employees/{id}/',
-                'delete': 'DELETE /api/employees/{id}/'
-            }
-        },
-        'documentation': 'This API provides CRUD operations for employee management'
-    })
+from employees.views import (
+    EmployeeViewSet,
+    register_user,
+    MyTokenObtainPairView,
+    UserListAPIView
+)
 
+# The router automatically generates the URL patterns for the EmployeeViewSet.
+router = DefaultRouter()
+router.register(r'employees', EmployeeViewSet, basename='employee')
+
+# Main URL patterns for the entire project.
 urlpatterns = [
-    path('', api_root, name='api-root'),
+    # Redirect the root URL to the main API endpoint.
+    path('', lambda request: redirect('api/', permanent=True)),
+
+    # Django admin site.
     path('admin/', admin.site.urls),
-    path('api/employees/', include('employees.urls')),
+
+    # All API endpoints will be prefixed with 'api/'.
+    path('api/', include([
+        # URLs for user registration and authentication.
+        path("register/", register_user, name="register"),
+        path("users/", UserListAPIView.as_view(), name="user-list"),
+        path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
+        path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+        # Include the router-generated URLs for the EmployeeViewSet.
+        # This will create endpoints like /api/employees/ and /api/employees/<employee_id>/
+        path('', include(router.urls)),
+    ])),
 ]
+
+# from django.contrib import admin
+# from django.urls import path, include
+# from rest_framework.routers import DefaultRouter
+# from employees.views import EmployeeViewSet, register_user, MyTokenObtainPairView
+# from employees.views import UserListAPIView
+# from rest_framework_simplejwt.views import TokenRefreshView
+# from django.conf import settings
+# from django.conf.urls.static import static
+# from employees import views
+# from django.shortcuts import redirect
+
+# router = DefaultRouter()
+# router.register(r'employees', EmployeeViewSet)
+
+# urlpatterns = [
+#     path('', lambda request: redirect('/api/')),
+#     path('admin/', admin.site.urls),
+#     path('api/employees/', views.employee_list),
+#     path('api/', include(router.urls)),
+#     path("api/users/", UserListAPIView.as_view(), name="user-list"),
+#     path("api/register/", register_user, name="signup"),
+#     path('api/token/',  MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
+#     path('api/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+# ]

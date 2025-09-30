@@ -1,9 +1,30 @@
-from rest_framework import generics, status
+from rest_framework import generics, status, viewsets
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.views import TokenObtainPairView
+from django.contrib.auth.models import User
 from .models import Employee
-from .serializers import EmployeeSerializer
+from .serializers import EmployeeSerializer, UserRegistrationSerializer, MyTokenObtainPairSerializer, UserSerializer
+
+# JWT Token View
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer
+
+# User List View (for admin purposes)
+class UserListAPIView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAuthenticated]
+    
+class EmployeeViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for Employee CRUD operations via DefaultRouter
+    Provides: list, create, retrieve, update, partial_update, destroy
+    """
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
+    permission_classes = [IsAuthenticated]
 
 class EmployeeListCreateView(generics.ListCreateAPIView):
     """
@@ -12,6 +33,7 @@ class EmployeeListCreateView(generics.ListCreateAPIView):
     """
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+    permission_classes = [IsAuthenticated]
 
 class EmployeeRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -21,10 +43,12 @@ class EmployeeRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    lookup_field = 'id'
+    permission_classes = [IsAuthenticated]
+     
 
 @api_view(['GET'])
-def employee_list(request):
+@permission_classes([IsAuthenticated])
+def list(request):
     """
     Alternative function-based view for listing employees
     """
@@ -33,7 +57,8 @@ def employee_list(request):
     return Response(serializer.data)
 
 @api_view(['POST'])
-def employee_create(request):
+@permission_classes([IsAuthenticated])
+def create(request):
     """
     Alternative function-based view for creating employees
     """
@@ -44,14 +69,15 @@ def employee_create(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'DELETE'])
-def employee_detail(request, pk):
+@permission_classes([IsAuthenticated])
+def detail(request, pk):
     """
     Alternative function-based view for retrieve, update, or delete employee
     """
     try:
         employee = Employee.objects.get(pk=pk)
     except Employee.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'Employee not found'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
         serializer = EmployeeSerializer(employee)
@@ -66,4 +92,20 @@ def employee_detail(request, pk):
 
     elif request.method == 'DELETE':
         employee.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Employee deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+    
+# User Registration Function (referenced in urls.py)
+@api_view(['POST'])
+def register_user(request):
+    """
+    Register a new user - No authentication required for registration
+    """
+    serializer = UserRegistrationSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        return Response({
+            'message': 'User created successfully',
+            'user_id': user.id,
+            'username': user.username
+        }, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
