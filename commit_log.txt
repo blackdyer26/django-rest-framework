@@ -6,3 +6,4 @@
 2025-10-11 12:00:00 - Tested API endpoints for registration and login.
 2025-10-14 22:20:00 - Done API integration between DRF and django_frontend
 2025-09-30 17:00:00 - initial DRF project setup for backend employees app.
+2025-10-02 11:30:00 - Added employee model and initial migrations.
