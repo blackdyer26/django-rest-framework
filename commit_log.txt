@@ -11,3 +11,4 @@
 2025-10-04 18:00:00 - Added EmployeeSerializer, EmployeeViewSet and registered routes in urls.py.
 2025-10-09 15:45:00 - Created UserCreateView & User Registeration Components
 2025-10-11 12:00:00 - Tested API endpoints for registration and login.
+2025-10-14 22:20:00 - Done API integration between DRF and django_frontend
