@@ -1,0 +1,7 @@
+2025-09-30 17:00:00 - initial DRF project setup for backend employees app.
+2025-10-02 11:30:00 - Added employee model and initial migrations.
+2025-10-03 20:15:00 - created serializers.py for employee model.
+2025-10-04 18:00:00 - Added EmployeeSerializer, EmployeeViewSet and registered routes in urls.py.
+2025-10-09 15:45:00 - Created UserCreateView & User Registeration Components
+2025-10-11 12:00:00 - Tested API endpoints for registration and login.
+2025-10-14 22:20:00 - Done API integration between DRF and django_frontend
